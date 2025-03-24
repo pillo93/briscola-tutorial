@@ -1,15 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
-using UnityEngine;
 
-public class Card : INetworkSerializable 
+public class Card : INetworkSerializable
 {
     public Suit suit;
     public Value value;
 
-    public Card(){}
-    
+    public Card()
+    {
+    }
+
     public Card(Suit suit, Value value)
     {
         this.suit = suit;
@@ -30,9 +29,9 @@ public class Card : INetworkSerializable
 
 public enum Suit
 {
-    BASTONI,
-    COPPE,
     DENARI,
+    COPPE,
+    BASTONI,
     SPADE
 }
 

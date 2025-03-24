@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7857815737640240756}
   - component: {fileID: 7643893121310462260}
   m_Layer: 0
-  m_Name: Client
+  m_Name: ClientPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e836dc1bcabc58b4ba7701715dcf2e72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cardPrefab: {fileID: 5979715289003164319, guid: c03d3ac31e6b080f8a3e847128f02cd4, type: 3}
 --- !u!114 &7643893121310462260
 MonoBehaviour:
   m_ObjectHideFlags: 0
