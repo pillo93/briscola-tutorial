@@ -5,10 +5,13 @@ using UnityEngine;
 public class CardImages : MonoBehaviour
 {
     [SerializeField] private Sprite[] cardSprites;
+    [SerializeField] private Sprite cardBackSprite;
+    public static Sprite CardBackSprite;
     public static Dictionary<string, Sprite> CardSpriteDictionary = new();
 
     void Awake()
     {
+        CardBackSprite = cardBackSprite;
         int spriteIndex = 0;
         foreach (Suit suit in Enum.GetValues(typeof(Suit)))
         {
@@ -18,6 +21,7 @@ public class CardImages : MonoBehaviour
                 CardSpriteDictionary[c.ToString()] = cardSprites[spriteIndex++];
             }
         }
+
         Debug.Log($"CardImagesDict size = {CardSpriteDictionary.Count}");
     }
 }

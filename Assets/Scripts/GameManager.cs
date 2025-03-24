@@ -22,7 +22,6 @@ public class GameManager : NetworkBehaviour
         if (p1 == null)
         {
             p1 = new Player(clientId);
-            StartCoroutine(StartGame());
         }
         else if (p2 == null)
         {

@@ -12,8 +12,13 @@ public class Client : NetworkBehaviour
         Debug.Log($"Client spawned on network with id {OwnerClientId}");
         if (IsOwner)
         {
+            GameObject.Find("NetworkUI").SetActive(false);
             handContainer = GameObject.Find("HandTransform").transform;
             Invoke(nameof(ClientConnectServerRpc), 1f);
+        }
+        else
+        {
+            handContainer = GameObject.Find("EnemyHandTransform").transform;
         }
     }
 
@@ -32,6 +37,6 @@ public class Client : NetworkBehaviour
         Debug.Log($"Client{OwnerClientId} was dealt {c} at index {i}");
         var cui = Instantiate(cardPrefab, handContainer)
             .GetComponent<CardUi>();
-        cui.SetCard(c);
+        cui.SetCard(IsOwner ? c : null);
     }
 }
