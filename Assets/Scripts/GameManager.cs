@@ -1,12 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour
 {
-
     private Player p1;
     private Player p2;
     private List<Card> deck;
@@ -22,12 +22,12 @@ public class GameManager : NetworkBehaviour
         if (p1 == null)
         {
             p1 = new Player(clientId);
-            StartGame();
+            StartCoroutine(StartGame());
         }
         else if (p2 == null)
         {
             p2 = new Player(clientId);
-            StartGame();
+            StartCoroutine(StartGame());
         }
         else
         {
@@ -36,8 +36,9 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    private void StartGame()
+    private IEnumerator StartGame()
     {
+        yield return new WaitForSeconds(1f);
         InitDeck();
         DealInitialHand();
     }
@@ -52,14 +53,19 @@ public class GameManager : NetworkBehaviour
                 deck.Add(new Card(suit, value));
             }
         }
+
         Shuffle();
         Debug.Log("Deck initialized");
-        Debug.Log(string.Concat(deck.ConvertAll(c => c.ToString() + ", ")));
+        Debug.Log(string.Concat(deck.ConvertAll(c => c + ", ")));
     }
 
     private void DealInitialHand()
     {
-
+        for (int i = 0; i < Player.handSize; i++)
+        {
+            p1.DealCard(GetFirstCard());
+            p2?.DealCard(GetFirstCard());
+        }
     }
 
     private void Shuffle()
@@ -68,9 +74,21 @@ public class GameManager : NetworkBehaviour
         while (n > 1)
         {
             n--;
-            int k = UnityEngine.Random.Range(0, n + 1);
+            int k = Random.Range(0, n + 1);
             (deck[k], deck[n]) = (deck[n], deck[k]);
         }
     }
 
+    private Card GetFirstCard()
+    {
+        Card card = deck[0];
+        deck.RemoveAt(0);
+        return card;
+    }
+
+    public Player GetPlayer(ulong clientId)
+    {
+        if (p1.clientId == clientId) return p1;
+        return p2.clientId == clientId ? p2 : null;
+    }
 }

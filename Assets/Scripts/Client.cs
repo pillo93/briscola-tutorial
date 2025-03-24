@@ -21,6 +21,14 @@ public class Client : NetworkBehaviour
     {
         gm = FindObjectOfType<GameManager>();
         gm.ClientConnect(OwnerClientId);
+        var player = gm.GetPlayer(OwnerClientId);
+        player.OnCardDealt = OnCardDealtClientRpc;
+    }
+
+    [ClientRpc]
+    private void OnCardDealtClientRpc(int i, Card c)
+    {
+        Debug.Log($"Client{OwnerClientId} was dealt {c} at index {i}");
     }
 
 }

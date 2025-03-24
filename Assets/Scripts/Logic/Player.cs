@@ -1,21 +1,20 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class Player 
+public class Player
 {
-
     public ulong clientId;
     public const int handSize = 3;
     public Card[] hand = new Card[handSize];
 
-    public Player(ulong clientId) 
+    public Player(ulong clientId)
     {
         this.clientId = clientId;
     }
 
-    public Action<int, Card> OnCardDealt;
+    public UnityAction<int, Card> OnCardDealt;
+
     public void DealCard(Card card)
     {
         for (int i = 0; i < handSize; i++)
@@ -23,10 +22,12 @@ public class Player
             if (hand[i] == null)
             {
                 hand[i] = card;
+                Debug.Log($"Player{clientId} was dealt {card} at index {i}");
                 OnCardDealt?.Invoke(i, card);
+                return;
             }
         }
+
         throw new InvalidOperationException($"Client{clientId}: Hand was full, could not deal card!");
     }
-
 }
