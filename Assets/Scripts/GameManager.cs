@@ -13,6 +13,7 @@ public class GameManager : NetworkBehaviour
     private Player p2;
     private List<Card> deck;
     private Card briscolaCard;
+    private int cardsPlayed = 0;
     [SerializeField] GameObject cardPrefab;
     [SerializeField] private bool singlePlayer;
 
@@ -52,6 +53,7 @@ public class GameManager : NetworkBehaviour
         //Dopo aver dato carte ai giocatori, ne prendiamo una che fara' da briscola
         briscolaCard = GetFirstCard();
         DisplayBriscolaCardClientRpc(briscolaCard);
+        deck.Add(briscolaCard); // we put the briscola as last card
         StartPlayerTurn(p1, false);
     }
 
@@ -106,7 +108,9 @@ public class GameManager : NetworkBehaviour
     private void DisplayBriscolaCardClientRpc(Card card)
     {
         var deckTransform = GameObject.Find("Deck").transform;
-        var go = Instantiate(cardPrefab, deckTransform);
+        var go = Instantiate(cardPrefab, deckTransform.parent);
+        go.transform.SetSiblingIndex(deckTransform.GetSiblingIndex() - 1);
+        go.transform.position = deckTransform.position;
         go.transform.rotation = Quaternion.Euler(0, 0, -90);
         go.GetComponent<CardUi>().SetCard(card);
         go.GetComponent<CardUi>().enabled = false;
@@ -130,7 +134,15 @@ public class GameManager : NetworkBehaviour
             //La carta gia' giocata e' dell'opponent e ha precedenza di punto
             CheckScore(cardPlayed, opponent, card, player);
             cardPlayed = null;
-            StartPlayerTurn(winner, true); // Inizia il turno chi ha preso, e si pesca
+            cardsPlayed += 2;
+            if(cardsPlayed < 40)
+            {
+                StartPlayerTurn(winner, true); // Inizia il turno chi ha preso, e si pesca
+            }
+            else
+            {
+                CheckWhoWon();
+            }
         }
     }
 
@@ -174,6 +186,28 @@ public class GameManager : NetworkBehaviour
         GetOpponent(p.clientId).Score(0);
     }
 
+    private void CheckWhoWon()
+    {
+        if (p1.score > p2.score) DisplayWinnerClientRpc(p1.clientId);
+        else if (p2.score > p1.score) DisplayWinnerClientRpc(p2.clientId);
+        else DisplayTieClientRpc();
+    }
+
+    [ClientRpc]
+    private void DisplayWinnerClientRpc(ulong winnerClientId)
+    {
+        var msg = winnerClientId == Client.Local.OwnerClientId ? "You Won!!!" : "You Lost :(((";
+        Debug.Log(msg);
+    }
+
+    [ClientRpc]
+    private void DisplayTieClientRpc()
+    {
+        Debug.Log("The match was a tie!");
+    }
+
+    #region utils
+
     private void Shuffle()
     {
         int n = deck.Count;
@@ -203,5 +237,7 @@ public class GameManager : NetworkBehaviour
         if (p1.clientId == clientId) return p2;
         return p2.clientId == clientId ? p1 : null;
     }
+
+    #endregion
 
 }
