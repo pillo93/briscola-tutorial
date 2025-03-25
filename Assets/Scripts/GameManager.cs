@@ -10,6 +10,8 @@ public class GameManager : NetworkBehaviour
     private Player p1;
     private Player p2;
     private List<Card> deck;
+    private Card briscolaCard;
+    [SerializeField] GameObject cardPrefab;
 
     public override void OnNetworkSpawn()
     {
@@ -40,6 +42,9 @@ public class GameManager : NetworkBehaviour
         yield return new WaitForSeconds(1f);
         InitDeck();
         DealInitialHand();
+        //Dopo aver dato carte ai giocatori, ne prendiamo una che fara' da briscola
+        briscolaCard = GetFirstCard();
+        DisplayBriscolaCardClientRpc(briscolaCard);
     }
 
     private void InitDeck()
@@ -65,6 +70,16 @@ public class GameManager : NetworkBehaviour
             p1.DealCard(GetFirstCard());
             p2?.DealCard(GetFirstCard());
         }
+    }
+
+    [ClientRpc]
+    private void DisplayBriscolaCardClientRpc(Card card)
+    {
+        var deckTransform = GameObject.Find("Deck").transform;
+        var go = Instantiate(cardPrefab, deckTransform);
+        go.transform.rotation = Quaternion.Euler(0, 0, -90);
+        go.GetComponent<CardUi>().SetCard(card);
+        go.GetComponent<CardUi>().enabled = false;
     }
 
     private void Shuffle()
