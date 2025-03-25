@@ -12,6 +12,7 @@ public class GameManager : NetworkBehaviour
     private List<Card> deck;
     private Card briscolaCard;
     [SerializeField] GameObject cardPrefab;
+    [SerializeField] private bool singlePlayer;
 
     public override void OnNetworkSpawn()
     {
@@ -24,6 +25,10 @@ public class GameManager : NetworkBehaviour
         if (p1 == null)
         {
             p1 = new Player(clientId);
+            if (singlePlayer)
+            {
+                StartCoroutine(StartGame());
+            }
         }
         else if (p2 == null)
         {
@@ -104,5 +109,10 @@ public class GameManager : NetworkBehaviour
     {
         if (p1.clientId == clientId) return p1;
         return p2.clientId == clientId ? p2 : null;
+    }
+
+    public void PlayCard(ulong ownerClientId, Card card)
+    {
+        GetPlayer(ownerClientId).PlayCard(card);
     }
 }

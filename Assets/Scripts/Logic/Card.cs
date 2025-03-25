@@ -7,6 +7,7 @@ public class Card : INetworkSerializable
 
     public Card()
     {
+        //Required for serialization
     }
 
     public Card(Suit suit, Value value)
@@ -18,6 +19,11 @@ public class Card : INetworkSerializable
     public override string ToString()
     {
         return $"{value} di {suit}";
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Card c && value == c.value && suit == c.suit;
     }
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter

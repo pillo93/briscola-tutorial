@@ -30,4 +30,21 @@ public class Player
 
         throw new InvalidOperationException($"Client{clientId}: Hand was full, could not deal card!");
     }
+    
+    public UnityAction<int, Card> OnCardPlayed;
+
+    public void PlayCard(Card card)
+    {
+        for (int i = 0; i < handSize; i++)
+        {
+            if (card.Equals(hand[i]))
+            {
+                hand[i] = null;
+                OnCardPlayed?.Invoke(i, card);
+                return;
+            }
+        }
+        throw new InvalidOperationException($"Client{clientId}: Card to play not found!");
+    }
+    
 }

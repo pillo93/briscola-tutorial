@@ -1,7 +1,8 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CardUi : MonoBehaviour
+public class CardUi : MonoBehaviour, IPointerClickHandler
 {
     private Card card;
 
@@ -17,5 +18,12 @@ public class CardUi : MonoBehaviour
             card = c;
             image.sprite = CardImages.CardSpriteDictionary[c.ToString()];    
         }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        Debug.Log($"OnPointerClick {card}");
+        if (card == null) return;
+        Client.Local.PlayCardServerRpc(card);
     }
 }
