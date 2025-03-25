@@ -1,30 +1,31 @@
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
 public class Client : NetworkBehaviour
 {
     public static Client Local;
+    public bool isTurnActive { get; private set; }
     [SerializeField] private GameObject cardPrefab;
     private GameManager gm;
     private Transform handContainer;
     private Transform playedCardContainer;
+    private TMP_Text scoreText;
+    private CardUi lastPlayedCard;
 
     public override void OnNetworkSpawn()
     {
         Debug.Log($"Client spawned on network with id {OwnerClientId}");
+        string goPrefix = IsOwner ? "Player" : "Enemy";
         if (IsOwner)
         {
             Local = this;
             GameObject.Find("NetworkUI").SetActive(false);
-            handContainer = GameObject.Find("HandTransform").transform;
-            playedCardContainer = GameObject.Find("PlayerCardSpot").transform;
             Invoke(nameof(ClientConnectServerRpc), 1f);
         }
-        else
-        {
-            handContainer = GameObject.Find("EnemyHandTransform").transform;
-            playedCardContainer = GameObject.Find("EnemyCardSpot").transform;
-        }
+        handContainer = GameObject.Find(goPrefix + "HandTransform").transform;
+        playedCardContainer = GameObject.Find(goPrefix + "CardSpot").transform;
+        scoreText = GameObject.Find(goPrefix + "Score").GetComponent<TMP_Text>();
     }
 
     [ServerRpc]
@@ -32,9 +33,24 @@ public class Client : NetworkBehaviour
     {
         gm = FindObjectOfType<GameManager>();
         gm.ClientConnect(OwnerClientId);
+        gm.OnActiveClientChange += OnClientTurnChangeClientRpc;
         var player = gm.GetPlayer(OwnerClientId);
         player.OnCardDealt = OnCardDealtClientRpc;
         player.OnCardPlayed = OnCardPlayedClientRpc;
+        player.OnScoreUpdate = OnClientScoreUpdateClientRpc;
+    }
+
+    [ClientRpc]
+    private void OnClientTurnChangeClientRpc(ulong activeClientId)
+    {
+        isTurnActive = activeClientId == OwnerClientId;
+    }
+
+    [ClientRpc]
+    private void OnClientScoreUpdateClientRpc(int newScore)
+    {
+        scoreText.text = $"Score: {newScore}";
+        lastPlayedCard.gameObject.SetActive(false);
     }
 
     [ClientRpc]
@@ -57,9 +73,9 @@ public class Client : NetworkBehaviour
     private void OnCardPlayedClientRpc(int i, Card c)
     {
         var child = handContainer.GetChild(i);
-        var cardUi = child.GetComponent<CardUi>();
-        cardUi.SetCard(c);
-        cardUi.enabled = false;
+        lastPlayedCard = child.GetComponent<CardUi>();
+        lastPlayedCard.SetCard(c);
+        lastPlayedCard.enabled = false;
         child.SetParent(playedCardContainer);
         child.localPosition = Vector3.zero;
     }

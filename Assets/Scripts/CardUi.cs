@@ -23,7 +23,7 @@ public class CardUi : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         Debug.Log($"OnPointerClick {card}");
-        if (card == null) return;
+        if (card == null || !Client.Local.isTurnActive) return;
         Client.Local.PlayCardServerRpc(card);
     }
 }

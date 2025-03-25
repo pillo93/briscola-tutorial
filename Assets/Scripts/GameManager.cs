@@ -3,10 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Events;
 using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour
 {
+    ulong activePlayerId;
     private Player p1;
     private Player p2;
     private List<Card> deck;
@@ -50,6 +52,7 @@ public class GameManager : NetworkBehaviour
         //Dopo aver dato carte ai giocatori, ne prendiamo una che fara' da briscola
         briscolaCard = GetFirstCard();
         DisplayBriscolaCardClientRpc(briscolaCard);
+        StartPlayerTurn(p1, false);
     }
 
     private void InitDeck()
@@ -70,10 +73,32 @@ public class GameManager : NetworkBehaviour
 
     private void DealInitialHand()
     {
-        for (int i = 0; i < Player.handSize; i++)
+        for (int i = 0; i < Player.handSize; i++) 
         {
             p1.DealCard(GetFirstCard());
             p2?.DealCard(GetFirstCard());
+        }
+    }
+
+    public UnityAction<ulong> OnActiveClientChange;
+    private void StartPlayerTurn(Player p, bool shouldDealCards)
+    {
+        activePlayerId = p.clientId;
+        OnActiveClientChange?.Invoke(activePlayerId);
+        if (shouldDealCards)
+        {
+            DrawCardsForTurn();
+        }
+    }
+
+    private void DrawCardsForTurn()
+    {
+        if (deck.Count > 0)
+        {
+            var activePlayer = GetPlayer(activePlayerId);
+            activePlayer.DealCard(GetFirstCard());
+            var opp = GetOpponent(activePlayerId);
+            opp.DealCard(GetFirstCard());
         }
     }
 
@@ -85,6 +110,68 @@ public class GameManager : NetworkBehaviour
         go.transform.rotation = Quaternion.Euler(0, 0, -90);
         go.GetComponent<CardUi>().SetCard(card);
         go.GetComponent<CardUi>().enabled = false;
+    }
+
+    Card cardPlayed = null;
+    public void PlayCard(ulong ownerClientId, Card card)
+    {
+        var player = GetPlayer(ownerClientId);
+        player.PlayCard(card);
+        var opponent = player == p1 ? p2 : p1;
+        //Se e' la prima carta sul tavolo, la salviamo e diamo priorita' all'avversario
+        if (cardPlayed == null)
+        {
+            cardPlayed = card;
+            StartPlayerTurn(opponent, false);
+        }
+        else
+        {
+            //Se c'era gia' una carta a tavola, calcoliamo chi fa punto
+            //La carta gia' giocata e' dell'opponent e ha precedenza di punto
+            CheckScore(cardPlayed, opponent, card, player);
+            cardPlayed = null;
+            StartPlayerTurn(winner, true); // Inizia il turno chi ha preso, e si pesca
+        }
+    }
+
+    // p1 e' il giocatore che ha giocato la prima carta, avra' priorita' nel calcolo punti
+    private void CheckScore(Card c1, Player p1, Card c2, Player p2)
+    {
+        Suit briscola = briscolaCard.suit;
+        Suit s1 = c1.suit; 
+        Suit s2 = c2.suit;
+        Value v1 = c1.value;
+        Value v2 = c2.value;
+        int points = v1.Score() + v2.Score();
+        if (s1 == s2) // Quando i due semi sono uguali
+        {
+            if (v1.Score() > v2.Score()) Score(p1, points);
+            else Score(p2, points);
+        }
+        else
+        {
+            if (s1 == briscola && s2 != briscola) // se p1 ha giocato briscola e p2 no
+            {
+                Score(p1, points);
+            }
+            else if (s2 == briscola && s1 != briscola) // il contrario
+            {
+                Score(p2, points);
+            }
+            else // nessuno ha giocato briscola e i semi sono diversi, vince p1 per priorita'
+            {
+                Score(p1, points);
+            }
+        }
+
+    }
+
+    Player winner;
+    private void Score(Player p, int score)
+    {
+        winner = p;
+        p.Score(score);
+        GetOpponent(p.clientId).Score(0);
     }
 
     private void Shuffle()
@@ -111,8 +198,10 @@ public class GameManager : NetworkBehaviour
         return p2.clientId == clientId ? p2 : null;
     }
 
-    public void PlayCard(ulong ownerClientId, Card card)
+    public Player GetOpponent(ulong clientId)
     {
-        GetPlayer(ownerClientId).PlayCard(card);
+        if (p1.clientId == clientId) return p2;
+        return p2.clientId == clientId ? p1 : null;
     }
+
 }

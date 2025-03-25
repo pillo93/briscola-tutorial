@@ -7,6 +7,7 @@ public class Player
     public ulong clientId;
     public const int handSize = 3;
     public Card[] hand = new Card[handSize];
+    public int score;
 
     public Player(ulong clientId)
     {
@@ -45,6 +46,13 @@ public class Player
             }
         }
         throw new InvalidOperationException($"Client{clientId}: Card to play not found!");
+    }
+
+    public UnityAction<int> OnScoreUpdate;
+    public void Score(int points)
+    {
+        score += points;
+        OnScoreUpdate?.Invoke(score);
     }
     
 }

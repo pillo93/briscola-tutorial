@@ -31,6 +31,7 @@ public class Card : INetworkSerializable
         serializer.SerializeValue(ref suit);
         serializer.SerializeValue(ref value);
     }
+
 }
 
 public enum Suit
@@ -53,4 +54,20 @@ public enum Value
     FANTE,
     CAVALLO,
     RE
+}
+
+public static class ValueExt
+{
+    public static int Score(this Value v)
+    {
+        switch (v)
+        {
+            case Value.ASSO: return 11;
+            case Value.TRE: return 10;
+            case Value.RE: return 4;
+            case Value.CAVALLO: return 3;
+            case Value.FANTE: return 2;
+            default: return 0;
+        }
+    }
 }
