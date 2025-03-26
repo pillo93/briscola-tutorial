@@ -9,8 +9,8 @@ using Random = UnityEngine.Random;
 public class GameManager : NetworkBehaviour
 {
     ulong activePlayerId;
-    private Player p1;
-    private Player p2;
+    private Player player1;
+    private Player player2;
     private List<Card> deck;
     private Card briscolaCard;
     private int cardsPlayed = 0;
@@ -25,17 +25,17 @@ public class GameManager : NetworkBehaviour
     public void ClientConnect(ulong clientId)
     {
         Debug.Log($"GM: Client{clientId} connected.");
-        if (p1 == null)
+        if (player1 == null)
         {
-            p1 = new Player(clientId);
+            player1 = new Player(clientId);
             if (singlePlayer)
             {
                 StartCoroutine(StartGame());
             }
         }
-        else if (p2 == null)
+        else if (player2 == null)
         {
-            p2 = new Player(clientId);
+            player2 = new Player(clientId);
             StartCoroutine(StartGame());
         }
         else
@@ -54,7 +54,7 @@ public class GameManager : NetworkBehaviour
         briscolaCard = GetFirstCard();
         DisplayBriscolaCardClientRpc(briscolaCard);
         deck.Add(briscolaCard); // we put the briscola as last card
-        StartPlayerTurn(p1, false);
+        StartPlayerTurn(player1, false);
     }
 
     private void InitDeck()
@@ -77,8 +77,8 @@ public class GameManager : NetworkBehaviour
     {
         for (int i = 0; i < Player.handSize; i++) 
         {
-            p1.DealCard(GetFirstCard());
-            p2?.DealCard(GetFirstCard());
+            player1.DealCard(GetFirstCard());
+            player2?.DealCard(GetFirstCard());
         }
     }
 
@@ -116,12 +116,12 @@ public class GameManager : NetworkBehaviour
         go.GetComponent<CardUi>().enabled = false;
     }
 
-    Card cardPlayed = null;
+    private Card cardPlayed;
     public void PlayCard(ulong ownerClientId, Card card)
     {
         var player = GetPlayer(ownerClientId);
         player.PlayCard(card);
-        var opponent = player == p1 ? p2 : p1;
+        var opponent = player == player1 ? player2 : player1;
         //Se e' la prima carta sul tavolo, la salviamo e diamo priorita' all'avversario
         if (cardPlayed == null)
         {
@@ -157,8 +157,7 @@ public class GameManager : NetworkBehaviour
         int points = v1.Score() + v2.Score();
         if (s1 == s2) // Quando i due semi sono uguali
         {
-            if (v1.Score() > v2.Score()) Score(p1, points);
-            else Score(p2, points);
+            Score(v1.Score() > v2.Score() ? p1 : p2, points);
         }
         else
         {
@@ -178,7 +177,7 @@ public class GameManager : NetworkBehaviour
 
     }
 
-    Player winner;
+    private Player winner;
     private void Score(Player p, int score)
     {
         winner = p;
@@ -188,8 +187,8 @@ public class GameManager : NetworkBehaviour
 
     private void CheckWhoWon()
     {
-        if (p1.score > p2.score) DisplayWinnerClientRpc(p1.clientId);
-        else if (p2.score > p1.score) DisplayWinnerClientRpc(p2.clientId);
+        if (player1.score > player2.score) DisplayWinnerClientRpc(player1.clientId);
+        else if (player2.score > player1.score) DisplayWinnerClientRpc(player2.clientId);
         else DisplayTieClientRpc();
     }
 
@@ -221,21 +220,21 @@ public class GameManager : NetworkBehaviour
 
     private Card GetFirstCard()
     {
-        Card card = deck[0];
+        var card = deck[0];
         deck.RemoveAt(0);
         return card;
     }
 
     public Player GetPlayer(ulong clientId)
     {
-        if (p1.clientId == clientId) return p1;
-        return p2.clientId == clientId ? p2 : null;
+        if (player1.clientId == clientId) return player1;
+        return player2.clientId == clientId ? player2 : null;
     }
 
-    public Player GetOpponent(ulong clientId)
+    private Player GetOpponent(ulong clientId)
     {
-        if (p1.clientId == clientId) return p2;
-        return p2.clientId == clientId ? p1 : null;
+        if (player1.clientId == clientId) return player2;
+        return player2.clientId == clientId ? player1 : null;
     }
 
     #endregion
