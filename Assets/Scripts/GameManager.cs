@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
@@ -75,7 +76,7 @@ public class GameManager : NetworkBehaviour
 
     private void DealInitialHand()
     {
-        for (int i = 0; i < Player.handSize; i++) 
+        for (int i = 0; i < Player.handSize; i++)
         {
             player1.DealCard(GetFirstCard());
             player2?.DealCard(GetFirstCard());
@@ -83,6 +84,7 @@ public class GameManager : NetworkBehaviour
     }
 
     public UnityAction<ulong> OnActiveClientChange;
+
     private void StartPlayerTurn(Player p, bool shouldDealCards)
     {
         activePlayerId = p.clientId;
@@ -117,6 +119,7 @@ public class GameManager : NetworkBehaviour
     }
 
     private Card cardPlayed;
+
     public void PlayCard(ulong ownerClientId, Card card)
     {
         var player = GetPlayer(ownerClientId);
@@ -135,7 +138,7 @@ public class GameManager : NetworkBehaviour
             CheckScore(cardPlayed, opponent, card, player);
             cardPlayed = null;
             cardsPlayed += 2;
-            if(cardsPlayed < 40)
+            if (cardsPlayed < 40)
             {
                 StartPlayerTurn(winner, true); // Inizia il turno chi ha preso, e si pesca
             }
@@ -150,7 +153,7 @@ public class GameManager : NetworkBehaviour
     private void CheckScore(Card c1, Player p1, Card c2, Player p2)
     {
         Suit briscola = briscolaCard.suit;
-        Suit s1 = c1.suit; 
+        Suit s1 = c1.suit;
         Suit s2 = c2.suit;
         Value v1 = c1.value;
         Value v2 = c2.value;
@@ -174,10 +177,10 @@ public class GameManager : NetworkBehaviour
                 Score(p1, points);
             }
         }
-
     }
 
     private Player winner;
+
     private void Score(Player p, int score)
     {
         winner = p;
@@ -196,13 +199,18 @@ public class GameManager : NetworkBehaviour
     private void DisplayWinnerClientRpc(ulong winnerClientId)
     {
         var msg = winnerClientId == Client.Local.OwnerClientId ? "You Won!!!" : "You Lost :(((";
-        Debug.Log(msg);
+        var endPanel = GameObject.Find("EndGamePanel");
+        endPanel.SetActive(true);
+        endPanel.GetComponentInChildren<TMP_Text>().text = msg;
     }
 
     [ClientRpc]
     private void DisplayTieClientRpc()
     {
-        Debug.Log("The match was a tie!");
+        var msg = "The match was a tie!";
+        var endPanel = GameObject.Find("EndGamePanel");
+        endPanel.SetActive(true);
+        endPanel.GetComponentInChildren<TMP_Text>().text = msg;
     }
 
     #region utils
@@ -238,5 +246,4 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion
-
 }
