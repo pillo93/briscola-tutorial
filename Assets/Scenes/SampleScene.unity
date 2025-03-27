@@ -848,7 +848,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 5979715289003164319, guid: c03d3ac31e6b080f8a3e847128f02cd4, type: 3}
-  singlePlayer: 0
+  aiClientPrefab: {fileID: 4399810468445353668, guid: 99c31c622e7c1f849a13ebb80cbb7bb1, type: 3}
+  singlePlayer: 1
 --- !u!1 &765714714
 GameObject:
   m_ObjectHideFlags: 0

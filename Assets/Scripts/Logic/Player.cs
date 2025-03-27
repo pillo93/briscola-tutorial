@@ -48,6 +48,11 @@ public class Player
         throw new InvalidOperationException($"Client{clientId}: Card to play not found!");
     }
 
+    private void ShiftCards()
+    {
+        
+    }
+
     public UnityAction<int> OnScoreUpdate;
     public void Score(int points)
     {

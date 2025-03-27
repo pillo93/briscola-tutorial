@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Events;
 using Random = UnityEngine.Random;
@@ -16,11 +17,17 @@ public class GameManager : NetworkBehaviour
     private Card briscolaCard;
     private int cardsPlayed = 0;
     [SerializeField] GameObject cardPrefab;
+    [SerializeField] GameObject aiClientPrefab;
     [SerializeField] private bool singlePlayer;
 
     public override void OnNetworkSpawn()
     {
         Debug.Log("GameManager spawned on network! And it's owned by the Server: " + IsOwnedByServer);
+        if (singlePlayer)
+        {
+            var aiClient = Instantiate(aiClientPrefab);
+            aiClient.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
+        }
     }
 
     public void ClientConnect(ulong clientId)
@@ -29,10 +36,6 @@ public class GameManager : NetworkBehaviour
         if (player1 == null)
         {
             player1 = new Player(clientId);
-            if (singlePlayer)
-            {
-                StartCoroutine(StartGame());
-            }
         }
         else if (player2 == null)
         {
