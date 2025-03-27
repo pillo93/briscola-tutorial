@@ -57,8 +57,7 @@ public class Client : NetworkBehaviour
     private void OnCardDealtClientRpc(int i, Card c)
     {
         Debug.Log($"Client{OwnerClientId} was dealt {c} at index {i}");
-        var go = Instantiate(cardPrefab, handContainer);
-        go.transform.SetSiblingIndex(i);
+        var go = Instantiate(cardPrefab, handContainer.GetChild(i));
         var cui = go.GetComponent<CardUi>();
         cui.SetCard(IsOwner ? c : null);
     }
@@ -72,7 +71,7 @@ public class Client : NetworkBehaviour
     [ClientRpc]
     private void OnCardPlayedClientRpc(int i, Card c)
     {
-        var child = handContainer.GetChild(i);
+        var child = handContainer.GetChild(i).GetChild(0);
         lastPlayedCard = child.GetComponent<CardUi>();
         lastPlayedCard.SetCard(c);
         lastPlayedCard.enabled = false;
