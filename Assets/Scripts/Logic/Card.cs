@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using Unity.VisualScripting;
 
 public class Card : INetworkSerializable
 {
@@ -16,6 +17,16 @@ public class Card : INetworkSerializable
         this.value = value;
     }
 
+    public static bool operator >(Card c1, Card c2)
+    {
+        return c1.Score() > c2.Score();
+    }
+
+    public static bool operator <(Card c1, Card c2)
+    {
+        return c1.Score() < c2.Score();
+    }
+
     public override string ToString()
     {
         return $"{value} di {suit}";
@@ -30,6 +41,19 @@ public class Card : INetworkSerializable
     {
         serializer.SerializeValue(ref suit);
         serializer.SerializeValue(ref value);
+    }
+
+    public int Score()
+    {
+        switch (value)
+        {
+            case Value.ASSO: return 11;
+            case Value.TRE: return 10;
+            case Value.RE: return 4;
+            case Value.CAVALLO: return 3;
+            case Value.FANTE: return 2;
+            default: return 0;
+        }
     }
 
 }
@@ -56,18 +80,3 @@ public enum Value
     RE
 }
 
-public static class ValueExt
-{
-    public static int Score(this Value v)
-    {
-        switch (v)
-        {
-            case Value.ASSO: return 11;
-            case Value.TRE: return 10;
-            case Value.RE: return 4;
-            case Value.CAVALLO: return 3;
-            case Value.FANTE: return 2;
-            default: return 0;
-        }
-    }
-}

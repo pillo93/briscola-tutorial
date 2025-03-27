@@ -4,18 +4,20 @@ using UnityEngine.UI;
 
 public class CardUi : MonoBehaviour, IPointerClickHandler
 {
-    private Card card;
+    public Card card { get; private set; }
+    private bool isOwned;
 
-    public void SetCard(Card c)
+    public void SetCard(Card c, bool isOwned)
     {
         var image = GetComponent<Image>();
-        if (c == null)
+        this.isOwned = isOwned;
+        card = c;
+        if (!isOwned)
         {
             image.sprite = CardImages.CardBackSprite;
         }
         else
         {
-            card = c;
             image.sprite = CardImages.CardSpriteDictionary[c.ToString()];    
         }
     }
@@ -23,7 +25,7 @@ public class CardUi : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         Debug.Log($"OnPointerClick {card}");
-        if (card == null || !Client.Local.isTurnActive) return;
+        if (!isOwned || !Client.Local.isTurnActive) return;
         Client.Local.PlayCardServerRpc(card);
     }
 }

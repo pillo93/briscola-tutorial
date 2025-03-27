@@ -14,7 +14,7 @@ public class GameManager : NetworkBehaviour
     private Player player1;
     private Player player2;
     private List<Card> deck;
-    private Card briscolaCard;
+    public Card briscolaCard { get; private set; }
     private int cardsPlayed = 0;
     [SerializeField] GameObject cardPrefab;
     [SerializeField] GameObject aiClientPrefab;
@@ -117,7 +117,7 @@ public class GameManager : NetworkBehaviour
         go.transform.SetSiblingIndex(deckTransform.GetSiblingIndex() - 1);
         go.transform.position = deckTransform.position;
         go.transform.rotation = Quaternion.Euler(0, 0, -90);
-        go.GetComponent<CardUi>().SetCard(card);
+        go.GetComponent<CardUi>().SetCard(card, true);
         go.GetComponent<CardUi>().enabled = false;
     }
 
@@ -158,12 +158,10 @@ public class GameManager : NetworkBehaviour
         Suit briscola = briscolaCard.suit;
         Suit s1 = c1.suit;
         Suit s2 = c2.suit;
-        Value v1 = c1.value;
-        Value v2 = c2.value;
-        int points = v1.Score() + v2.Score();
+        int points = c1.Score() + c2.Score();
         if (s1 == s2) // Quando i due semi sono uguali
         {
-            Score(v1.Score() > v2.Score() ? p1 : p2, points);
+            Score(c1 > c2 ? p1 : p2, points);
         }
         else
         {

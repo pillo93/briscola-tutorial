@@ -10,9 +10,9 @@ public class Client : NetworkBehaviour
     public bool isOwned { get; private set; }
     public ulong clientId { get; private set; }
     [SerializeField] private GameObject cardPrefab;
-    private GameManager gm;
-    private Transform handContainer;
-    private Transform playedCardContainer;
+    protected GameManager gm;
+    protected Transform handContainer;
+    public Transform playedCardContainer { get; private set; }
     private TMP_Text scoreText;
     private CardUi lastPlayedCard;
 
@@ -69,7 +69,7 @@ public class Client : NetworkBehaviour
         Debug.Log($"Client{clientId} was dealt {c} at index {i}");
         var go = Instantiate(cardPrefab, handContainer.GetChild(i));
         var cui = go.GetComponent<CardUi>();
-        cui.SetCard(isOwned ? c : null);
+        cui.SetCard(c, isOwned);
     }
 
     [ServerRpc]
@@ -83,7 +83,7 @@ public class Client : NetworkBehaviour
     {
         var child = handContainer.GetChild(i).GetChild(0);
         lastPlayedCard = child.GetComponent<CardUi>();
-        lastPlayedCard.SetCard(c);
+        lastPlayedCard.SetCard(c, true);
         lastPlayedCard.enabled = false;
         child.SetParent(playedCardContainer);
         child.localPosition = Vector3.zero;
